@@ -5,17 +5,19 @@ export GO_EASY_ON_ME=1
 BUNDLE_NAME = VAPlugin VAPreferences
 TWEAK_NAME = VARelay
 
-VAPlugin_FILES = Plugin.mm
+VAPlugin_FILES = VAPlugin.mm VAShared.mm
 VAPlugin_INSTALL_PATH = /System/Library/VoiceServices/PlugIns/
 VAPlugin_BUNDLE_EXTENSION = vsplugin
 
-VAPreferences_FILES = Preferences.mm
+VAPreferences_FILES = VAPreferences.mm VAShared.mm
 VAPreferences_INSTALL_PATH = /Library/PreferenceBundles/
 VAPreferences_FRAMEWORKS = UIKit
 VAPreferences_PRIVATE_FRAMEWORKS = Preferences
+VAPreferences_LDFLAGS = -lactivator
 
-VARelay_FILES = Relay.mm
+VARelay_FILES = VARelay.mm VAShared.mm
 VARelay_FRAMEWORKS = UIKit
+VARelay_LDFLAGS = -lactivator
 
 include $(THEOS_MAKE_PATH)/bundle.mk
 include $(THEOS_MAKE_PATH)/tweak.mk

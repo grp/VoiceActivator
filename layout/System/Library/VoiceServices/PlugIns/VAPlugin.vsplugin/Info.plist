@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>VoiceActivator</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.chpwn.voiceactivator.plugin</string>
+	<string>com.apple.voiceactivator.plugin</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -42,9 +42,9 @@
 	<array>
 		<dict>
 			<key>VSRecognitionModelFileName</key>
-			<string>com.apple.vaplugin.plist</string>
+			<string>com.apple.va.plist</string>
 			<key>VSRecognitionModelIdentifier</key>
-			<string>com.chpwn.vaplugin</string>
+			<string>com.apple.va</string>
 			<key>VSRecognitionModelIsTopLevel</key>
 			<true/>
 			<key>VSRecognitionResultHandler</key>
