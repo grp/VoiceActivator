@@ -5,13 +5,13 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>VoiceActivator</string>
+	<string>VAPlugin</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.apple.voiceactivator.plugin</string>
+	<string>com.apple.voiceactivator</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>VoiceActivator</string>
+	<string>VAPlugin</string>
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleSignature</key>
@@ -42,9 +42,9 @@
 	<array>
 		<dict>
 			<key>VSRecognitionModelFileName</key>
-			<string>com.apple.va.plist</string>
+			<string>com.apple.voiceactivator.plist</string>
 			<key>VSRecognitionModelIdentifier</key>
-			<string>com.apple.va</string>
+			<string>com.apple.voiceactivator</string>
 			<key>VSRecognitionModelIsTopLevel</key>
 			<true/>
 			<key>VSRecognitionResultHandler</key>

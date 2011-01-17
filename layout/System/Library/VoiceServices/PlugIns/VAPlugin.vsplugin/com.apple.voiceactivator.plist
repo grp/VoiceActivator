@@ -7,10 +7,10 @@
 		<dict>
 			<key>VSRecognitionClassElements</key>
 			<array>
-				<string>iPhone</string>
+				<string>paper</string>
 			</array>
 			<key>VSRecognitionClassIdentifier</key>
-			<string>iPhone</string>
+			<string>paper</string>
 			<key>VSRecognitionClassType</key>
 			<string>VSRecognitionClassTypeCommand</string>
 		</dict>
@@ -20,7 +20,7 @@
 		<dict>
 			<key>VSRecognitionSequenceElements</key>
 			<array>
-				<string>iPhone</string>
+				<string>paper</string>
 			</array>
 		</dict>
 	</array>
