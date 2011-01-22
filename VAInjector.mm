@@ -92,7 +92,6 @@ CFReadStreamRef VACFReadStreamCreateWithFile(
     );
 
     if (CFStringCompare(CFURLGetString(fileURL), CFSTR("file://localhost/System/Library/VoiceServices/PlugIns/Base.vsplugin/com.apple.help-en.plist"), 0) == kCFCompareEqualTo) {
-        NSLog(@"injecting, dude!!!!!!!!!!!");
         inject_stream = stream;
     }
 
@@ -100,8 +99,6 @@ CFReadStreamRef VACFReadStreamCreateWithFile(
 }
 
 __attribute__((constructor)) static void VAInjectorInit() {
-    NSLog(@"VAInjector: Loaded!");
-
     MSHookFunction(CFPropertyListCreateWithStream, VACFPropertyListCreateWithStream, &CFCFPropertyListCreateWithStream);
     MSHookFunction(CFReadStreamCreateWithFile, VACFReadStreamCreateWithFile, &CFCFReadStreamCreateWithFile);
 }
