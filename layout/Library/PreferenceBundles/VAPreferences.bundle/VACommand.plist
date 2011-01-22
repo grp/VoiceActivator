@@ -55,12 +55,28 @@
 			</array>
 		</dict>
 		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>get</key>
+			<string>getActionWithSpecifier:</string>
+			<key>id</key>
+			<string>action</string>
+			<key>label</key>
+			<string>Configure</string>
+			<key>noAutoCorrect</key>
+			<true/>
+			<key>placeholder</key>
+			<string>Action</string>
+			<key>set</key>
+			<string>setAction:withSpecifier:</string>
+		</dict>
+		<dict>
 			<key>action</key>
 			<string>configureWithSpecifier:</string>
 			<key>cell</key>
 			<string>PSLinkListCell</string>
 			<key>id</key>
-			<string>action</string>
+			<string>activator</string>
 			<key>label</key>
 			<string>Configure</string>
 		</dict>

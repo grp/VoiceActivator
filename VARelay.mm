@@ -2,6 +2,7 @@
 #import <objc/runtime.h>
 #import <UIKit/UIKit.h>
 #import <libactivator.h>
+#import <launch.h>
 
 #import "VAShared.h"
 
@@ -58,6 +59,15 @@ static void VARelayApplyPreferences() {
 
     [eventNames autorelease];
     eventNames = newEventNames;
+
+    // XXX: This is stupid. I should not need to use the launchd API here.
+    launch_data_t msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+    launch_data_dict_insert(msg, launch_data_new_string("com.apple.voiced"), LAUNCH_KEY_STOPJOB);
+    launch_data_t resp = launch_msg(msg); // ignore errors, nothing we can do about them
+    launch_data_free(msg);
+    launch_data_free(resp);
+
+    [[NSFileManager defaultManager] removeItemAtPath:@"/var/mobile/Library/Caches/VoiceServices/" error:NULL];
 }
 
 static void VARelayPreferencesChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {

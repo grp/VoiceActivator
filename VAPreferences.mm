@@ -71,19 +71,38 @@ static VAPreferencesListController *sharedListController;
 
 @interface VACommandListController : PSListController {
     NSMutableDictionary *command;
+    PSSpecifier *action;
+    PSSpecifier *activator;
 }
 @end
 
 @implementation VACommandListController
+- (NSDictionary *)produceCommand {
+    NSNumber *identifier = [[self specifier] propertyForKey:@"id"];
+    return [VAPreferencesGetCommandWithIdentifier(preferences, [NSNumber numberWithInt:[identifier intValue]]) retain];
+}
 - (id)specifiers {
 	if (!_specifiers) {
-        _specifiers = [[self loadSpecifiersFromPlistName:@"VACommand" target:self] retain];
+        _specifiers = [[self loadSpecifiersFromPlistName:@"VACommand" target:self] mutableCopy];
+        action = [[self specifierForID:@"action"] retain];
+        activator = [[self specifierForID:@"activator"] retain];
 
-        NSNumber *identifier = [[self specifier] propertyForKey:@"id"];
-        command = [VAPreferencesGetCommandWithIdentifier(preferences, [NSNumber numberWithInt:[identifier intValue]]) retain];
+        if (command == nil) command = [self produceCommand];
+        [self updateAction];
     }
 
     return _specifiers;
+}
+- (void)updateAction {
+    int idx = 0;
+    if ([self containsSpecifier:action]) idx = [self indexOfSpecifier:action];
+    else idx = [self indexOfSpecifier:activator];
+
+    [self removeSpecifier:activator animated:NO];
+    [self removeSpecifier:action animated:NO];
+
+    if ([VACommandGet(command, kVACommandTypeKey) isEqual:kVACommandTypeActivator]) [self insertSpecifier:activator atIndex:idx animated:NO];
+    else [self insertSpecifier:action atIndex:idx animated:NO];
 }
 - (void)write {
     VAPreferencesSave(preferences);
@@ -102,11 +121,19 @@ static VAPreferencesListController *sharedListController;
     VACommandSet(command, kVACommandCommandKey, cmd);
     [self save];
 }
+- (NSString *)getActionWithSpecifier:(PSSpecifier *)specifier {
+    return VAPreferencesGet(command, kVACommandActionKey);
+}
+- (void)setAction:(NSString *)cmd withSpecifier:(PSSpecifier *)specifier {
+    VACommandSet(command, kVACommandActionKey, cmd);
+    [self save];
+}
 - (NSNumber *)getTypeWithSpecifier:(PSSpecifier *)specifier {
     return VAPreferencesGet(command, kVACommandTypeKey);
 }
 - (void)setType:(NSNumber *)type withSpecifier:(PSSpecifier *)specifier {
     VACommandSet(command, kVACommandTypeKey, type);
+    [self updateAction];
     [self save];
 }
 - (NSNumber *)getExitWithSpecifier:(PSSpecifier *)specifier {
@@ -151,15 +178,10 @@ static VAPreferencesListController *sharedListController;
 @end
 
 @implementation VANewCommandListController
-- (NSArray *)specifiers {
-	if (!_specifiers) {
-        _specifiers = [[self loadSpecifiersFromPlistName:@"VACommand" target:self] retain];
-        [self removeSpecifier:[self specifierForID:@"delete"]];
-        [self removeSpecifier:[self specifierForID:@"deletegroup"]];
-        command = [VACommandCreate() retain];;
-    }
-
-    return _specifiers;
+- (NSDictionary *)produceCommand {
+    [self removeSpecifier:[self specifierForID:@"delete"]];
+    [self removeSpecifier:[self specifierForID:@"deletegroup"]];
+    return [VACommandCreate() retain];
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -181,7 +203,7 @@ static VAPreferencesListController *sharedListController;
     [[self navigationItem] setRightBarButtonItem:saveItem];
 }
 - (void)saveAndClose {
-    // NOTE: Don't save here since save already automatically happened.
+    // NOTE: Don't bother to save here since save already automatically happened.
     [[self parentController] dismiss];
 }
 - (void)cancelAndClose {

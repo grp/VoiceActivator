@@ -4,12 +4,12 @@
 <dict>
 	<key>items</key>
 	<array>
-		<dict>
+		<!--dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
 			<string>VoiceActivator</string>
-		</dict>
+		</dict-->
 		<dict>
 			<key>cell</key>
 			<string>PSSwitchCell</string>
@@ -22,7 +22,7 @@
             <key>set</key>
             <string>setEnabled:withSpecifier:</string>
         </dict>
-		<dict>
+		<!--dict>
 			<key>cell</key>
 			<string>PSLinkListCell</string>
 			<key>default</key>
@@ -49,7 +49,7 @@
             <string>getPriorityWithSpecifier:</string>
             <key>set</key>
             <string>setPriority:withSpecifier:</string>
-		</dict>
+		</dict-->
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
@@ -82,6 +82,10 @@
 http://chpwn.com/
 Support available in Cydia.</string>
 		</dict>
+        <dict>
+            <key>cell</key>
+            <string>PSGroupCell</string>
+        </dict>
 	</array>
     <key>title</key>
     <string>VoiceActivator</string>
