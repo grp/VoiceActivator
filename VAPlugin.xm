@@ -17,6 +17,7 @@
         NSString *action = VACommandGet(item, kVACommandActionKey);
         NSString *type = VACommandGet(item, kVACommandTypeKey);
 
+        NSString *speak = @"";
         if ([type isEqual:kVACommandTypeSpeak]) speak = action;
         if ([type isEqual:kVACommandTypeURL]) [[objc_getClass("SpringBoard") sharedApplication] applicationOpenURL:[NSURL URLWithString:action]];
 
