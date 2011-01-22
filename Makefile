@@ -1,13 +1,14 @@
 include theos/makefiles/common.mk
 
 export GO_EASY_ON_ME=1
+export SDKVERSION = 4.2
 
-BUNDLE_NAME = VAPlugin VAPreferences
-TWEAK_NAME = VARelay
+BUNDLE_NAME = VAPreferences
+TWEAK_NAME = VARelay VAPlugin VAInjector
 
-VAPlugin_FILES = VAPlugin.mm VAShared.mm
-VAPlugin_INSTALL_PATH = /System/Library/VoiceServices/PlugIns/
-VAPlugin_BUNDLE_EXTENSION = vsplugin
+VAInjector_FILES = VAInjector.mm VAShared.mm
+
+VAPlugin_FILES = VAPlugin.xm VAShared.mm
 
 VAPreferences_FILES = VAPreferences.mm VAShared.mm
 VAPreferences_INSTALL_PATH = /Library/PreferenceBundles/
