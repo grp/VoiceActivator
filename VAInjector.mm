@@ -91,7 +91,7 @@ CFReadStreamRef VACFReadStreamCreateWithFile(
         fileURL
     );
 
-    if (CFStringCompare(CFURLGetString(fileURL), CFSTR("file://localhost/System/Library/VoiceServices/PlugIns/Base.vsplugin/com.apple.help-en.plist"), 0) == kCFCompareEqualTo) {
+    if (CFStringHasPrefix(CFURLGetString(fileURL), CFSTR("file://localhost/System/Library/VoiceServices/PlugIns/Base.vsplugin/com.apple.help"))) {
         // This *entirely* defines enabled/disabled state.
         // TODO: make this less of a hack
         if ([VAPreferencesGet(VAPreferencesLoad(), kVAPreferencesEnabledKey) boolValue])
