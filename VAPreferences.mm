@@ -68,11 +68,38 @@ static VAPreferencesListController *sharedListController;
 }
 @end
 
+@interface VAActivatorEventController : PSViewController {
+    LAEventSettingsController *settings;
+}
+@end
+
+@implementation VAActivatorEventController
+- (UIView *)view { return [settings view]; }
+- (id)navigationItem { return [settings navigationItem]; }
+- (id)navigationTitle { return [settings navigationTitle]; }
+- (void)dealloc {
+    [settings release];
+    [super dealloc];
+}
+- (id)initWithEventName:(NSString *)event {
+    self = [super init];
+
+    settings = [[LAEventSettingsController alloc]
+        initWithModes:[[LAActivator sharedInstance] availableEventModes]
+        eventName:event
+    ];
+
+    [settings setDelegate:self];
+    return self;
+}
+@end
 
 @interface VACommandListController : PSListController {
     NSMutableDictionary *command;
     PSSpecifier *action;
     PSSpecifier *activator;
+    PSSpecifier *exit;
+    int exitidx;
 }
 @end
 
@@ -86,9 +113,12 @@ static VAPreferencesListController *sharedListController;
         _specifiers = [[self loadSpecifiersFromPlistName:@"VACommand" target:self] mutableCopy];
         action = [[self specifierForID:@"action"] retain];
         activator = [[self specifierForID:@"activator"] retain];
+        exit = [[self specifierForID:@"exit"] retain];
+        exitidx = [self indexOfSpecifier:exit] - 1;
 
         if (command == nil) command = [self produceCommand];
         [self updateAction];
+        [self updateExit];
     }
 
     return _specifiers;
@@ -103,6 +133,11 @@ static VAPreferencesListController *sharedListController;
 
     if ([VACommandGet(command, kVACommandTypeKey) isEqual:kVACommandTypeActivator]) [self insertSpecifier:activator atIndex:idx animated:NO];
     else [self insertSpecifier:action atIndex:idx animated:NO];
+}
+- (void)updateExit {
+    [self removeSpecifier:exit animated:NO];
+    if ([VACommandGet(command, kVACommandTypeKey) isEqual:kVACommandTypeSpeak])
+        [self insertSpecifier:exit atIndex:exitidx animated:NO];
 }
 - (void)write {
     VAPreferencesSave(preferences);
@@ -134,6 +169,7 @@ static VAPreferencesListController *sharedListController;
 - (void)setType:(NSNumber *)type withSpecifier:(PSSpecifier *)specifier {
     VACommandSet(command, kVACommandTypeKey, type);
     [self updateAction];
+    [self updateExit];
     [self save];
 }
 - (NSNumber *)getExitWithSpecifier:(PSSpecifier *)specifier {
@@ -153,9 +189,8 @@ static VAPreferencesListController *sharedListController;
 }
 - (void)configureWithSpecifier:(PSSpecifier *)specifier {
     if ([VACommandGet(command, kVACommandTypeKey) isEqual:kVACommandTypeActivator]) {
-        LAEventSettingsController *settings = [[[LAEventSettingsController alloc]
-            initWithModes:[[LAActivator sharedInstance] availableEventModes]
-            eventName:VACommandEventName(command)
+        VAActivatorEventController *settings = [[[VAActivatorEventController alloc]
+            initWithEventName:VACommandEventName(command)
         ] autorelease];
         [[self parentController] pushViewController:settings animated:YES];
     }

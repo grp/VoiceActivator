@@ -18,10 +18,19 @@
         NSString *type = VACommandGet(item, kVACommandTypeKey);
 
         NSString *speak = @"";
-        if ([type isEqual:kVACommandTypeSpeak]) speak = action;
-        if ([type isEqual:kVACommandTypeURL]) [[objc_getClass("SpringBoard") sharedApplication] applicationOpenURL:[NSURL URLWithString:action]];
+        BOOL exit = YES;
+        if ([type isEqual:kVACommandTypeSpeak]) {
+            speak = action;
+            exit = [(NSNumber *) VACommandGet(item, kVACommandCompleteKey) boolValue];
+        } else if ([type isEqual:kVACommandTypeURL]) {
+            [[objc_getClass("SpringBoard") sharedApplication] applicationOpenURL:[NSURL URLWithString:action]];
+        } else if ([type isEqual:kVACommandTypeActivator]) {
+            NSString *name = VACommandEventName(item);
+            id event = [objc_getClass("LAEvent") eventWithName:name];
+            [[objc_getClass("LAActivator") sharedInstance] performSelector:@selector(sendEventToListener:) withObject:event afterDelay:2.0f];
+        }
 
-        id done = [[objc_getClass("VSRecognitionSpeakAction") alloc] initWithSpokenFeedbackString:speak willTerminate:[VACommandGet(item, kVACommandCompleteKey) boolValue]];
+        id done = [[objc_getClass("VSRecognitionSpeakAction") alloc] initWithSpokenFeedbackString:speak willTerminate:exit];
         return [done autorelease];
     } else {
         return %orig;

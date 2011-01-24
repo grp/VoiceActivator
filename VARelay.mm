@@ -1,6 +1,7 @@
 
 #import <objc/runtime.h>
 #import <UIKit/UIKit.h>
+#import <CoreFoundation/CoreFoundation.h>
 #import <libactivator.h>
 #import <launch.h>
 
@@ -70,8 +71,17 @@ static void VARelayApplyPreferences() {
     [[NSFileManager defaultManager] removeItemAtPath:@"/var/mobile/Library/Caches/VoiceServices/" error:NULL];
 }
 
-static void VARelayPreferencesChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {
+static void VARelayPreferencesChangedCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef info) {
     VARelayApplyPreferences();
+}
+
+static void VARelaySendActivatorEvent(NSString *name) {
+    LAEvent *event = [LAEvent eventWithName:name];
+    [[LAActivator sharedInstance] sendEventToListener:event];
+}
+
+static void VARelayActivatorEventCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef info) {
+    VARelaySendActivatorEvent(@"how_do_i_get_this");
 }
 
 __attribute__((constructor)) static void VARelayInit() {
