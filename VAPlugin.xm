@@ -39,14 +39,18 @@
 %end
 %end
 
+static int last_image_index = 0;
+
+static void VAImageUnloaded(const struct mach_header *mh, intptr_t slide) {
+    last_image_index--;
+}
+
 static void VAImageLoaded(const struct mach_header *mh, intptr_t slide) {
     static int recursion_stopper = 0;
+    const char *image = _dyld_get_image_name(last_image_index++);
     if (recursion_stopper > 0) return;
 
-    static int i = 0;
-    const char *image = _dyld_get_image_name(i++);
-
-    if (strcmp(image, "/System/Library/VoiceServices/PlugIns/Base.vsplugin/Base") == 0) {
+    if (image != NULL && strcmp(image, "/System/Library/VoiceServices/PlugIns/Base.vsplugin/Base") == 0) {
         recursion_stopper += 1;
         dlopen(image, RTLD_NOW);
         recursion_stopper -= 1;
@@ -57,5 +61,6 @@ static void VAImageLoaded(const struct mach_header *mh, intptr_t slide) {
 
 __attribute__((constructor)) static void VAPluginInit() {
     _dyld_register_func_for_add_image(VAImageLoaded);
+    _dyld_register_func_for_remove_image(VAImageUnloaded);
 }
 
