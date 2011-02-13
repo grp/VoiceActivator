@@ -22,6 +22,43 @@
         if ([type isEqual:kVACommandTypeSpeak]) {
             speak = action;
             exit = [(NSNumber *) VACommandGet(item, kVACommandCompleteKey) boolValue];
+
+            if ([speak rangeOfString:@"$DATE"].location != NSNotFound) {
+                NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+                [formatter setDateFormat:@"EEEE MMMM d yyyy"];
+                NSString *date = [formatter stringForDate:[NSDate date]];
+                speak = [speak stringByReplacingOccurrencesOfString:@"$DATE" withString:date];
+            }
+
+            if ([speak rangeOfString:@"$TIME"].location != NSNotFound) {
+                NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+                [formatter setDateStyle:NSDateFormatterNoStyle];
+                [formatter setTimeStyle:NSDateFormatterShortStyle];
+                NSString *time = [formatter stringForDate:[NSDate date]];
+                speak = [speak stringByReplacingOccurrencesOfString:@"$TIME" withString:time];
+            }
+
+            if ([speak rangeOfString:@"$BATTERY"].location != NSNotFound) {
+                NSString *battery = [NSString stringWithFormat:@"%d", (int) ([[UIDevice currentDevice] batteryLevel] * 100.0f)];
+                speak = [speak stringByReplacingOccurrencesOfString:@"$BATTERY" withString:battery];
+            }
+
+            if ([speak rangeOfString:@"$VERSION"].location != NSNotFound) {
+                NSString *version = [[UIDevice currentDevice] systemVersion];
+                speak = [speak stringByReplacingOccurrencesOfString:@"$VERSION" withString:version];
+            }
+
+            if ([speak rangeOfString:@"$MODEL"].location != NSNotFound) {
+                NSString *model = [[UIDevice currentDevice] localizedModel];
+                speak = [speak stringByReplacingOccurrencesOfString:@"$MODEL" withString:model];
+            }
+
+            if ([speak rangeOfString:@"$CARRIER"].location != NSNotFound) {
+                CTTelephonyNetworkInfo *netinfo = [[CTTelephonyNetworkInfo alloc] init];
+                CTCarrier *carrier = [netinfo subscriberCellularProvider];
+                speak = [speak stringByReplacingOccurrencesOfString:@"$CARRIER" withString:[carrier carrierName]];
+                [netinfo release];
+            }
         } else if ([type isEqual:kVACommandTypeURL]) {
             [[objc_getClass("SpringBoard") sharedApplication] applicationOpenURL:[NSURL URLWithString:action]];
         } else if ([type isEqual:kVACommandTypeActivator]) {
@@ -29,6 +66,8 @@
             id event = [objc_getClass("LAEvent") eventWithName:name];
             [[objc_getClass("LAActivator") sharedInstance] performSelector:@selector(sendEventToListener:) withObject:event afterDelay:2.0f];
         }
+
+
 
         id done = [[objc_getClass("VSRecognitionSpeakAction") alloc] initWithSpokenFeedbackString:speak willTerminate:exit];
         return [done autorelease];
