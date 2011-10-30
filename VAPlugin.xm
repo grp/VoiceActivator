@@ -2,6 +2,11 @@
 #import <mach-o/dyld.h>
 #import <substrate.h>
 
+#import <CoreTelephony/CTCall.h>
+#import <CoreTelephony/CTCallCenter.h>
+#import <CoreTelephony/CTTelephonyNetworkInfo.h>
+#import <UIKit/UIKit.h>
+
 #import "VAShared.h"
 
 %group VAResultHandler
