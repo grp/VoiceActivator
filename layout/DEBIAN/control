@@ -9,7 +9,7 @@ Architecture: iphoneos-arm
 Description: Custom Voice Control commands! Add commands to Voice Control with full Activator integration. Toggle SBSettings toggles, open websites, launch apps, or speak text.
 Depiction: http://chpwn.com/cydia/voiceactivator.html
 Homepage: http://chpwn.com/cydia/voiceactivator.html
-Author: chpwn <voiceactivator@chpwn.com>
+Author: chpwn <support@chpwn.com>
 Maintainer: BigBoss <bigboss@thebigboss.org>
 Sponsor: thebigboss.org <http://thebigboss.org>
 Tag: cydia::commercial, purpose::extension
