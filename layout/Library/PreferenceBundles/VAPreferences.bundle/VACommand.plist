@@ -43,9 +43,9 @@
 			<string>setType:withSpecifier:</string>
 			<key>validTitles</key>
 			<array>
-				<string>Speak</string>
-				<string>URL</string>
-				<string>Activator</string>
+				<string>Speak Text</string>
+				<string>Open URL</string>
+				<string>Activator (apps + more)</string>
 			</array>
 			<key>validValues</key>
 			<array>
@@ -125,7 +125,23 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>Speak this command into Voice Control to perform the selected action. Exit when Complete exits Voice Control once the action has been performed.</string>
+			<string>Speak this command into Voice Control to perform the selected action.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+            <key>id</key>
+            <string>varhelp</string>
+			<key>footerText</key>
+			<string>You can use variables in your speech text: $DATE, $TIME, $BATTERY, $CARRIER, $VERSION, and $MODEL.
+
+Exit when Complete exits Voice Control once the action has been performed.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string></string>
 		</dict>
 	</array>
 	<key>title</key>

@@ -13,10 +13,12 @@ static void VAPreferencesPostPreferencesChangedNotification() {
     CFNotificationCenterPostNotificationWithOptions(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("com.chpwn.voiceactivator.preferences_changed"), NULL, NULL, 0);
 }
 
+@class VAResponseListController, VANewResponseListController;
 @class VACommandListController, VANewCommandListController;
 
 @interface VAPreferencesListController : PSListController {
-    PSSpecifier *last;
+    PSSpecifier *lastc;
+    PSSpecifier *lastr;
 } @end
 
 static VAPreferencesListController *sharedListController;
@@ -25,9 +27,15 @@ static VAPreferencesListController *sharedListController;
     return sharedListController;
 }
 - (PSSpecifier *)specifierForCommand:(NSDictionary *)command {
-    PSSpecifier *specifier =  [PSSpecifier preferenceSpecifierNamed:VACommandGet(command, kVACommandCommandKey)
+    PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:VACommandGet(command, kVACommandCommandKey)
         target:nil set:nil get:nil detail:[VACommandListController class] cell:PSLinkCell edit:nil];
-    [specifier setProperty:VACommandGet(command, kVACommandIdentifierKey) forKey:@"id"];
+    [specifier setProperty:[VACommandGet(command, kVACommandIdentifierKey) stringValue] forKey:@"id"];
+    return specifier;
+}
+- (PSSpecifier *)specifierForResponse:(NSDictionary *)response {
+    PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:VAResponseGet(response, kVAResponseTextKey)
+        target:nil set:nil get:nil detail:[VAResponseListController class] cell:PSLinkCell edit:nil];
+    [specifier setProperty:[VAResponseGet(response, kVAResponseIdentifierKey) stringValue] forKey:@"id"];
     return specifier;
 }
 - (NSArray *)specifiers {
@@ -36,10 +44,18 @@ static VAPreferencesListController *sharedListController;
     if (!_specifiers) {
         _specifiers =  [[self loadSpecifiersFromPlistName:@"VABase" target:self] mutableCopy];
 
-        NSMutableArray *commands = [NSMutableArray array];
-        int start = [self indexOfSpecifierID:@"commands"] + 1;
-        for (NSDictionary *command in VAPreferencesGet(preferences, kVAPreferencesCommandsKey)) [commands insertObject:[self specifierForCommand:command] atIndex:0];
-        for (PSSpecifier *specifier in commands) [_specifiers insertObject:specifier atIndex:start];
+        int start = 0;
+        NSMutableArray *items = nil;
+
+        items = [NSMutableArray array];
+        start = [self indexOfSpecifierID:@"commands"] + 1;
+        for (NSDictionary *command in VAPreferencesGet(preferences, kVAPreferencesCommandsKey)) [items insertObject:[self specifierForCommand:command] atIndex:0];
+        for (PSSpecifier *specifier in items) [_specifiers insertObject:specifier atIndex:start];
+
+        items = [NSMutableArray array];
+        start = [self indexOfSpecifierID:@"responses"] + 1;
+        for (NSDictionary *response in VAPreferencesGet(preferences, kVAPreferencesResponsesKey)) [items insertObject:[self specifierForResponse:response] atIndex:0];
+        for (PSSpecifier *specifier in items) [_specifiers insertObject:specifier atIndex:start];
     }
 
     return _specifiers;
@@ -47,7 +63,13 @@ static VAPreferencesListController *sharedListController;
 - (void)removeSpecifierForCommand:(NSDictionary *)command animated:(BOOL)animated {
     PSSpecifier *specifier = [self specifierForID:VACommandGet(command, kVACommandIdentifierKey)];
     int index = [self indexOfSpecifier:specifier];
-    if (specifier == last) last = [self specifierAtIndex:index - 1];
+    if (specifier == lastc) lastc = [self specifierAtIndex:index - 1];
+    [self removeSpecifier:specifier animated:animated];
+}
+- (void)removeSpecifierForResponse:(NSDictionary *)response animated:(BOOL)animated {
+    PSSpecifier *specifier = [self specifierForID:VAResponseGet(response, kVAResponseIdentifierKey)];
+    int index = [self indexOfSpecifier:specifier];
+    if (specifier == lastr) lastr = [self specifierAtIndex:index - 1];
     [self removeSpecifier:specifier animated:animated];
 }
 - (NSNumber *)getEnabledWithSpecifier:(PSSpecifier *)specifier {
@@ -94,18 +116,148 @@ static VAPreferencesListController *sharedListController;
 }
 @end
 
+@interface VAActivatorActionController : PSViewController {
+    LAListenerSettingsViewController *settings;
+}
+@end
+
+@implementation VAActivatorActionController
+- (UIView *)view { return [settings view]; }
+- (id)navigationItem { return [settings navigationItem]; }
+- (id)navigationTitle { return [settings navigationTitle]; }
+- (void)dealloc {
+    [settings release];
+    [super dealloc];
+}
+- (id)initWithActionName:(NSString *)name {
+    self = [super init];
+
+    settings = [[LAListenerSettingsViewController alloc] init];
+    [settings setListenerName:name];
+    [settings setDelegate:self];
+
+    return self;
+}
+@end
+
+@interface VAResponseListController : PSListController {
+    NSMutableDictionary *response;
+    PSSpecifier *text;
+}
+@end
+
+@implementation VAResponseListController
+- (NSDictionary *)produceResponse {
+    NSString *identifier = [[self specifier] propertyForKey:@"id"];
+    return [VAPreferencesGetResponseWithIdentifier(preferences, [NSNumber numberWithInt:[identifier intValue]]) retain];
+}
+- (id)specifiers {
+	if (!_specifiers) {
+        _specifiers = [[self loadSpecifiersFromPlistName:@"VAResponse" target:self] mutableCopy];
+        text = [[self specifierForID:@"text"] retain];
+
+        if (response == nil) response = [self produceResponse];
+    }
+
+    return _specifiers;
+}
+- (void)write {
+    VAPreferencesSave(preferences);
+    VAPreferencesPostPreferencesChangedNotification();
+    [[VAPreferencesListController sharedInstance] reloadSpecifiers];
+}
+- (void)save {
+    if (response == nil) return;
+    VAPreferencesSetResponseWithIdentifier(preferences, (NSNumber *) VAResponseGet(response, kVAResponseIdentifierKey), response);
+    [self write];
+}
+- (NSString *)getTextWithSpecifier:(PSSpecifier *)specifier {
+    return VAResponseGet(response, kVAResponseTextKey);
+}
+- (void)setText:(NSString *)text withSpecifier:(PSSpecifier *)specifier {
+    VAResponseSet(response, kVAResponseTextKey, text);
+    [self save];
+}
+- (void)configureWithSpecifier:(PSSpecifier *)specifier {
+    VAActivatorActionController *settings = [[[VAActivatorActionController alloc] initWithActionName:VAResponseActionName(response)] autorelease];;
+    [[self parentController] pushViewController:settings animated:YES];
+}
+- (void)delete {
+    VAPreferencesRemoveResponseWithIdentifier(preferences, (NSNumber *) VAResponseGet(response, kVAResponseIdentifierKey));
+    [self write];
+}
+- (void)deleteResponse {
+    [self delete];
+    [[self parentController] popViewControllerAnimated:YES];
+}
+- (void)dealloc {
+    [response release];
+    [super dealloc];
+}
+@end
+
+@interface VANewResponseSetupController : PSSetupController { } @end
+@implementation VANewResponseSetupController
++ (BOOL)isOverlay {
+    return NO;
+}
+@end
+
+@interface VANewResponseListController : VAResponseListController {
+}
+@end
+
+@implementation VANewResponseListController
+- (NSDictionary *)produceResponse {
+    [self removeSpecifier:[self specifierForID:@"delete"]];
+    [self removeSpecifier:[self specifierForID:@"deletegroup"]];
+    return [VAResponseCreate() retain];
+}
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
+    UIBarButtonItem *cancelItem = [[[UIBarButtonItem alloc]
+        initWithTitle:@"Cancel"
+        style:UIBarButtonItemStyleBordered
+        target:self
+        action:@selector(cancelAndClose)
+    ] autorelease];
+    [[self navigationItem] setLeftBarButtonItem:cancelItem];
+
+    UIBarButtonItem *saveItem = [[[UIBarButtonItem alloc]
+        initWithTitle:@"Save"
+        style:UIBarButtonItemStyleDone
+        target:self
+        action:@selector(saveAndClose)
+    ] autorelease];
+    [[self navigationItem] setRightBarButtonItem:saveItem];
+}
+- (void)saveAndClose {
+    // NOTE: Don't bother to save here since save already automatically happened.
+    [[self parentController] dismiss];
+}
+- (void)cancelAndClose {
+    [self delete];
+    response = nil;
+    [[self parentController] dismiss];
+}
+@end
+
+
 @interface VACommandListController : PSListController {
     NSMutableDictionary *command;
     PSSpecifier *action;
     PSSpecifier *activator;
     PSSpecifier *exit;
+    PSSpecifier *varhelp;
+    int helpidx;
     int exitidx;
 }
 @end
 
 @implementation VACommandListController
 - (NSDictionary *)produceCommand {
-    NSNumber *identifier = [[self specifier] propertyForKey:@"id"];
+    NSString *identifier = [[self specifier] propertyForKey:@"id"];
     return [VAPreferencesGetCommandWithIdentifier(preferences, [NSNumber numberWithInt:[identifier intValue]]) retain];
 }
 - (id)specifiers {
@@ -114,11 +266,14 @@ static VAPreferencesListController *sharedListController;
         action = [[self specifierForID:@"action"] retain];
         activator = [[self specifierForID:@"activator"] retain];
         exit = [[self specifierForID:@"exit"] retain];
+        varhelp = [[self specifierForID:@"varhelp"] retain];
         exitidx = [self indexOfSpecifier:exit] - 1;
+        helpidx = [self indexOfSpecifier:varhelp] - 1;
 
         if (command == nil) command = [self produceCommand];
         [self updateAction];
         [self updateExit];
+        [self updateHelp];
     }
 
     return _specifiers;
@@ -139,6 +294,11 @@ static VAPreferencesListController *sharedListController;
     if ([VACommandGet(command, kVACommandTypeKey) isEqual:kVACommandTypeSpeak])
         [self insertSpecifier:exit atIndex:exitidx animated:NO];
 }
+- (void)updateHelp {
+    [self removeSpecifier:varhelp animated:NO];
+    if ([VACommandGet(command, kVACommandTypeKey) isEqual:kVACommandTypeSpeak])
+        [self insertSpecifier:varhelp atIndex:MIN(helpidx, [_specifiers count] - 1)  animated:NO];
+}
 - (void)write {
     VAPreferencesSave(preferences);
     VAPreferencesPostPreferencesChangedNotification();
@@ -150,30 +310,31 @@ static VAPreferencesListController *sharedListController;
     [self write];
 }
 - (NSString *)getCommandWithSpecifier:(PSSpecifier *)specifier {
-    return VAPreferencesGet(command, kVACommandCommandKey);
+    return VACommandGet(command, kVACommandCommandKey);
 }
 - (void)setCommand:(NSString *)cmd withSpecifier:(PSSpecifier *)specifier {
     VACommandSet(command, kVACommandCommandKey, cmd);
     [self save];
 }
 - (NSString *)getActionWithSpecifier:(PSSpecifier *)specifier {
-    return VAPreferencesGet(command, kVACommandActionKey);
+    return VACommandGet(command, kVACommandActionKey);
 }
 - (void)setAction:(NSString *)cmd withSpecifier:(PSSpecifier *)specifier {
     VACommandSet(command, kVACommandActionKey, cmd);
     [self save];
 }
 - (NSNumber *)getTypeWithSpecifier:(PSSpecifier *)specifier {
-    return VAPreferencesGet(command, kVACommandTypeKey);
+    return VACommandGet(command, kVACommandTypeKey);
 }
 - (void)setType:(NSNumber *)type withSpecifier:(PSSpecifier *)specifier {
     VACommandSet(command, kVACommandTypeKey, type);
     [self updateAction];
     [self updateExit];
+    [self updateHelp];
     [self save];
 }
 - (NSNumber *)getExitWithSpecifier:(PSSpecifier *)specifier {
-    return VAPreferencesGet(command, kVACommandCompleteKey);
+    return VACommandGet(command, kVACommandCompleteKey);
 }
 - (void)setExit:(NSNumber *)exit withSpecifier:(PSSpecifier *)specifier {
     VACommandSet(command, kVACommandCompleteKey, exit);

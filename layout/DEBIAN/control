@@ -1,12 +1,12 @@
 Package: com.chpwn.voiceactivator
 Name: VoiceActivator
 Section: Tweaks
-Version: 1.0.3
+Version: 1.1.1
 Pre-Depends: firmware (>= 4.0)
 Depends: mobilesubstrate, gsc.armv7, libactivator (>= 1.5), preferenceloader
 Icon: file:///Library/PreferenceBundles/VAPreferences.bundle/VoiceActivator@2x.png
 Architecture: iphoneos-arm
-Description: Custom Voice Control commands! Add commands to Voice Control with full Activator integration.
+Description: Custom Voice Control commands! Add commands to Voice Control with full Activator integration. Toggle SBSettings toggles, open websites, launch apps, or speak text.
 Depiction: http://chpwn.com/cydia/voiceactivator.html
 Homepage: http://chpwn.com/cydia/voiceactivator.html
 Author: chpwn <voiceactivator@chpwn.com>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Speak Text</string>
+		</dict>
+		<dict>
+			<key>action</key>
+			<string>configureWithSpecifier:</string>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>id</key>
+			<string>activator</string>
+			<key>label</key>
+			<string>Activation Event</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>get</key>
+			<string>getTextWithSpecifier:</string>
+			<key>id</key>
+			<string>text</string>
+			<key>label</key>
+			<string>Text</string>
+			<key>noAutoCorrect</key>
+			<true/>
+			<key>placeholder</key>
+			<string>Text to Speak</string>
+			<key>set</key>
+			<string>setText:withSpecifier:</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+		    <key>id</key>
+            <string>deletegroup</string>
+        </dict>
+		<dict>
+			<key>action</key>
+			<string>deleteResponse</string>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>confirmation</key>
+			<dict>
+				<key>cancelTitle</key>
+				<string>Cancel</string>
+				<key>okTitle</key>
+				<string>Delete</string>
+				<key>prompt</key>
+				<string>Are you sure you want to delete this action?</string>
+				<key>title</key>
+				<string>Delete Action</string>
+			</dict>
+			<key>id</key>
+			<string>delete</string>
+			<key>isDestructive</key>
+			<true/>
+			<key>label</key>
+			<string>Delete Action</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+            <key>id</key>
+            <string>varhelp</string>
+			<key>footerText</key>
+			<string>You can use variables in your speech text: $DATE, $TIME, $BATTERY, $CARRIER, $VERSION, and $MODEL.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string></string>
+		</dict>
+	</array>
+	<key>title</key>
+	<string>Speak Text</string>
+</dict>
+</plist>

@@ -54,7 +54,7 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>Commands</string>
+			<string>Voice Commands</string>
             <key>id</key>
             <string>commands</string>
 		</dict>
@@ -73,6 +73,30 @@
             <string>Save</string>
             <key>prompt</key>
             <string>Enter new voice command information.</string>
+        </dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Speak Text</string>
+            <key>id</key>
+            <string>responses</string>
+		</dict>
+		<dict>
+            <key>cell</key>
+			<string>PSLinkCell</string>
+			<key>customControllerClass</key>
+            <string>VANewResponseListController</string>
+			<key>detail</key>
+			<string>VANewResponseSetupController</string>
+            <key>label</key>
+			<string>Add Entry...</string>
+		    <key>cancelTitle</key>
+            <string>Cancel</string>
+            <key>okTitle</key>
+            <string>Save</string>
+            <key>prompt</key>
+            <string>Enter new voice response information.</string>
         </dict>
 		<dict>
 			<key>cell</key>
