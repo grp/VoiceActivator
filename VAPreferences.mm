@@ -369,7 +369,7 @@ static VAPreferencesListController *sharedListController;
 
 - (void)deleteResponse {
     [self delete];
-    [[self parentController] popViewControllerAnimated:YES];
+    [[self rootController] popViewControllerAnimated:YES];
 }
 
 - (void)dealloc {
@@ -539,7 +539,7 @@ static VAPreferencesListController *sharedListController;
 
 - (void)deleteCommand {
     [self delete];
-    [[self parentController] popViewControllerAnimated:YES];
+    [[self rootController] popViewControllerAnimated:YES];
 }
 
 - (void)configureWithSpecifier:(PSSpecifier *)specifier {

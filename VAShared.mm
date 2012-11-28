@@ -209,17 +209,12 @@ NSString *VASpeechFormatText(NSString *text) {
     return speak;
 }
 
+@interface VSSpeechSynthesizer : NSObject
+- (id)startSpeakingString:(NSString *)string;
+@end
+
 void VASpeechSpeakText(NSString *text) {
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
-
-    UInt32 allowMixing = true;
-    AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(allowMixing), &allowMixing);
-    UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker;
-    AudioSessionSetProperty(kAudioSessionProperty_OverrideAudioRoute, sizeof(audioRouteOverride), &audioRouteOverride);
-
-    [[AVAudioSession sharedInstance] setActive:YES error:nil];
-
-    id synth = [[objc_getClass("VSRecognitionSession") alloc] init];
-    [synth performSelector:@selector(beginSpeakingString:) withObject:text afterDelay:0];
+    VSSpeechSynthesizer *synth = [[objc_getClass("VSSpeechSynthesizer") alloc] init];
+    [synth startSpeakingString:text];
 }
 
