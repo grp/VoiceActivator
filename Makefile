@@ -1,26 +1,27 @@
 include theos/makefiles/common.mk
 
-export GO_EASY_ON_ME=1
-export SDKVERSION = 4.2
+export GO_EASY_ON_ME = 1
+export TARGET = iphone:latest:5.0
+export TARGET_STRI_FLAG = -u
+export ARCHS = armv7
 
 BUNDLE_NAME = VAPreferences
 TWEAK_NAME = VARelay VAPlugin VAInjector
 
 VAInjector_FILES = VAInjector.mm VAShared.mm
-VAInjector_INSTALL_PATH = /Library/VoiceActivator/
-VAInjector_FRAMEWORKS = UIKit CoreTelephony
+VAInjector_FRAMEWORKS = CoreFoundation UIKit CoreTelephony AudioToolbox AVFoundation
 
 VAPlugin_FILES = VAPlugin.xm VAShared.mm
-VAPlugin_FRAMEWORKS = UIKit CoreTelephony
+VAPlugin_FRAMEWORKS = CoreFoundation UIKit CoreTelephony AudioToolbox AVFoundation
 
 VAPreferences_FILES = VAPreferences.mm VAShared.mm
 VAPreferences_INSTALL_PATH = /Library/PreferenceBundles/
-VAPreferences_FRAMEWORKS = UIKit CoreTelephony
+VAPreferences_FRAMEWORKS = CoreFoundation UIKit CoreTelephony AudioToolbox AVFoundation
 VAPreferences_PRIVATE_FRAMEWORKS = Preferences
 VAPreferences_LDFLAGS = -lactivator
 
 VARelay_FILES = VARelay.mm VAShared.mm
-VARelay_FRAMEWORKS = UIKit CoreTelephony AudioToolbox CoreGraphics
+VARelay_FRAMEWORKS = CoreFoundation UIKit CoreTelephony AudioToolbox AVFoundation CoreGraphics
 VARelay_LDFLAGS = -lactivator
 
 include $(THEOS_MAKE_PATH)/bundle.mk

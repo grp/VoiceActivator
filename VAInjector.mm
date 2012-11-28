@@ -92,10 +92,10 @@ CFReadStreamRef VACFReadStreamCreateWithFile(
     );
 
     if (CFStringHasPrefix(CFURLGetString(fileURL), CFSTR("file://localhost/System/Library/VoiceServices/PlugIns/Base.vsplugin/com.apple.help"))) {
-        // This *entirely* defines enabled/disabled state.
-        // TODO: make this less of a hack
-        if ([VAPreferencesGet(VAPreferencesLoad(), kVAPreferencesEnabledKey) boolValue])
+        if ([VAPreferencesGet(VAPreferencesLoad(), kVAPreferencesEnabledKey) boolValue]) {
+            // This *entirely* defines enabled/disabled state.
             inject_stream = stream;
+        }
     }
 
     return stream;
@@ -105,6 +105,4 @@ __attribute__((constructor)) static void VAInjectorInit() {
     MSHookFunction(CFPropertyListCreateWithStream, VACFPropertyListCreateWithStream, &CFCFPropertyListCreateWithStream);
     MSHookFunction(CFReadStreamCreateWithFile, VACFReadStreamCreateWithFile, &CFCFReadStreamCreateWithFile);
 }
-
-
 

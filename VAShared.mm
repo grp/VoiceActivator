@@ -1,10 +1,18 @@
 
+#import <CoreFoundation/CoreFoundation.h>
+#import <UIKit/UIKit.h>
+
 #import <CoreTelephony/CTCarrier.h>
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
 
+#import <AudioToolbox/AudioToolbox.h>
+#import <AVFoundation/AVFoundation.h>
+
+#import <objc/runtime.h>
+
 #import "VAShared.h"
 
-NSMutableDictionary *VAPreferencesCreate() {
+VAPreferences *VAPreferencesCreate() {
     return [NSMutableDictionary dictionaryWithObjectsAndKeys:
         [NSMutableArray array], kVAPreferencesCommandsKey,
         [NSMutableArray array], kVAPreferencesResponsesKey,
@@ -13,34 +21,40 @@ NSMutableDictionary *VAPreferencesCreate() {
     nil];
 }
 
-NSMutableDictionary *VAPreferencesLoad() {
+VAPreferences *VAPreferencesLoad() {
     NSMutableDictionary *prefs = [NSMutableDictionary dictionaryWithContentsOfFile:kVAPreferencesPath];
-    VAPreferencesSet(prefs, kVAPreferencesCommandsKey, [[VAPreferencesGet(prefs, kVAPreferencesCommandsKey) mutableCopy] autorelease] ?: [NSMutableDictionary dictionary]);
-    VAPreferencesSet(prefs, kVAPreferencesResponsesKey, [[VAPreferencesGet(prefs, kVAPreferencesResponsesKey) mutableCopy] autorelease] ?: [NSMutableDictionary dictionary]);
+    VAPreferencesSet(prefs, kVAPreferencesCommandsKey, [[VAPreferencesGet(prefs, kVAPreferencesCommandsKey) mutableCopy] autorelease] ?: [NSMutableArray array]);
+    VAPreferencesSet(prefs, kVAPreferencesResponsesKey, [[VAPreferencesGet(prefs, kVAPreferencesResponsesKey) mutableCopy] autorelease] ?: [NSMutableArray array]);
     return prefs;
 }
 
-void VAPreferencesSave(NSDictionary *preferences) {
+void VAPreferencesSave(VAPreferences *preferences) {
     [preferences writeToFile:kVAPreferencesPath atomically:YES];
 }
 
-NSObject *VAPreferencesGet(NSDictionary *preferences, NSString *key) {
+id VAPreferencesGet(VAPreferences *preferences, NSString *key) {
     return [preferences objectForKey:key];
 }
 
-void VAPreferencesSet(NSMutableDictionary *preferences, NSString *key, NSObject *value) {
+void VAPreferencesSet(VAPreferences *preferences, NSString *key, id value) {
     [preferences setObject:value forKey:key];
 }
 
 
-NSMutableDictionary *VAPreferencesGetResponseWithIdentifier(NSDictionary *preferences, NSNumber *identifier) {
+VAResponse *VAPreferencesGetResponseWithIdentifier(VAPreferences *preferences, NSNumber *identifier) {
     NSArray *responses = VAPreferencesGet(preferences, kVAPreferencesResponsesKey);
-    NSDictionary *response = nil;
-    for (NSDictionary *resp in responses) if ([VAResponseGet(resp, kVAResponseIdentifierKey) isEqual:identifier]) response = resp;
-    return response;
+    VAResponse *response = nil;
+
+    for (VAResponse *resp in responses) {
+        if ([VAResponseGet(resp, kVAResponseIdentifierKey) isEqual:identifier]) {
+            response = resp;
+        }
+    }
+
+    return VAResponseCreateWithDictionary(response);
 }
 
-void VAPreferencesSetResponseWithIdentifier(NSMutableDictionary *preferences, NSNumber *identifier, NSDictionary *response) {
+void VAPreferencesSetResponseWithIdentifier(VAPreferences *preferences, NSNumber *identifier, VAResponse *response) {
     NSMutableArray *responses = VAPreferencesGet(preferences, kVAPreferencesResponsesKey);
     int index = -1;
     for (int i = 0; i < [responses count]; i++) if ([VAResponseGet([responses objectAtIndex:i], kVAResponseIdentifierKey) isEqual:identifier]) index = i;
@@ -48,37 +62,37 @@ void VAPreferencesSetResponseWithIdentifier(NSMutableDictionary *preferences, NS
     else [responses addObject:response];
 }
 
-void VAPreferencesRemoveResponseWithIdentifier(NSMutableDictionary *preferences, NSNumber *identifier) {
+void VAPreferencesRemoveResponseWithIdentifier(VAPreferences *preferences, NSNumber *identifier) {
     NSMutableArray *responses = VAPreferencesGet(preferences, kVAPreferencesResponsesKey);
     int index = -1;
     for (int i = 0; i < [responses count]; i++) if ([VAResponseGet([responses objectAtIndex:i], kVAResponseIdentifierKey) isEqual:identifier]) index = i;
     if (index != -1) [responses removeObjectAtIndex:index];
 }
 
-NSMutableDictionary *VAResponseCreateWithDictionary(NSDictionary *item) {
+VAResponse *VAResponseCreateWithDictionary(NSDictionary *item) {
     return [[item mutableCopy] autorelease];
 }
 
-NSMutableDictionary *VAResponseCreateWithParameters(NSString *text) {
+VAResponse *VAResponseCreateWithParameters(NSString *text) {
     return [NSMutableDictionary dictionaryWithObjectsAndKeys:
         [NSNumber numberWithInt:arc4random()], kVAResponseIdentifierKey,
         text, kVAResponseTextKey,
     nil];
 }
 
-NSMutableDictionary *VAResponseCreate() {
+VAResponse *VAResponseCreate() {
     return VAResponseCreateWithParameters(@"");
 }
 
-void VAResponseSet(NSMutableDictionary *item, NSString *key, NSObject *value) {
+void VAResponseSet(VAResponse *item, NSString *key, id value) {
     [item setObject:value forKey:key];
 }
 
-NSObject *VAResponseGet(NSDictionary *item, NSString *key) {
+id VAResponseGet(VAResponse *item, NSString *key) {
     return [item objectForKey:key];
 }
 
-NSString *VAResponseActionName(NSDictionary *item) {
+NSString *VAResponseActionName(VAResponse *item) {
     return [@"com.chpwn.voiceactivator.response." stringByAppendingString:[VAResponseGet(item, kVAResponseIdentifierKey) stringValue]];
 }
 
@@ -87,14 +101,20 @@ NSNumber *VAResponseIdentifierForActionName(NSString *name) {
 }
 
 
-NSMutableDictionary *VAPreferencesGetCommandWithIdentifier(NSDictionary *preferences, NSNumber *identifier) {
+VACommand *VAPreferencesGetCommandWithIdentifier(VAPreferences *preferences, NSNumber *identifier) {
     NSArray *commands = VAPreferencesGet(preferences, kVAPreferencesCommandsKey);
-    NSDictionary *command = nil;
-    for (NSDictionary *cmd in commands) if ([VACommandGet(cmd, kVACommandIdentifierKey) isEqual:identifier]) command = cmd;
+    VACommand *command = nil;
+
+    for (VACommand *cmd in commands) {
+        if ([VACommandGet(cmd, kVACommandIdentifierKey) isEqual:identifier]) {
+            command = cmd;
+        }
+    }
+
     return VACommandCreateWithDictionary(command);
 }
 
-void VAPreferencesSetCommandWithIdentifier(NSMutableDictionary *preferences, NSNumber *identifier, NSDictionary *command) {
+void VAPreferencesSetCommandWithIdentifier(VAPreferences *preferences, NSNumber *identifier, VACommand *command) {
     NSMutableArray *commands = VAPreferencesGet(preferences, kVAPreferencesCommandsKey);
     int index = -1;
     for (int i = 0; i < [commands count]; i++) if ([VACommandGet([commands objectAtIndex:i], kVACommandIdentifierKey) isEqual:identifier]) index = i;
@@ -102,18 +122,18 @@ void VAPreferencesSetCommandWithIdentifier(NSMutableDictionary *preferences, NSN
     else [commands addObject:command];
 }
 
-void VAPreferencesRemoveCommandWithIdentifier(NSMutableDictionary *preferences, NSNumber *identifier) {
+void VAPreferencesRemoveCommandWithIdentifier(VAPreferences *preferences, NSNumber *identifier) {
     NSMutableArray *commands = VAPreferencesGet(preferences, kVAPreferencesCommandsKey);
     int index = -1;
     for (int i = 0; i < [commands count]; i++) if ([VACommandGet([commands objectAtIndex:i], kVACommandIdentifierKey) isEqual:identifier]) index = i;
     if (index != -1) [commands removeObjectAtIndex:index];
 }
 
-NSMutableDictionary *VACommandCreateWithDictionary(NSDictionary *item) {
+VACommand *VACommandCreateWithDictionary(NSDictionary *item) {
     return [[item mutableCopy] autorelease];
 }
 
-NSMutableDictionary *VACommandCreateWithParameters(NSString *cmd, NSNumber *type, NSString *action, NSNumber *complete) {
+VACommand *VACommandCreateWithParameters(NSString *cmd, NSNumber *type, NSString *action, NSNumber *complete) {
     return [NSMutableDictionary dictionaryWithObjectsAndKeys:
         [NSNumber numberWithInt:arc4random()], kVACommandIdentifierKey,
         cmd, kVACommandCommandKey,
@@ -123,19 +143,19 @@ NSMutableDictionary *VACommandCreateWithParameters(NSString *cmd, NSNumber *type
     nil];
 }
 
-NSMutableDictionary *VACommandCreate() {
+VACommand *VACommandCreate() {
     return VACommandCreateWithParameters(@"", kVACommandTypeSpeak, @"", [NSNumber numberWithBool:NO]);
 }
 
-void VACommandSet(NSMutableDictionary *item, NSString *key, NSObject *value) {
+void VACommandSet(VACommand *item, NSString *key, id value) {
     [item setObject:value forKey:key];
 }
 
-NSObject *VACommandGet(NSDictionary *item, NSString *key) {
+id VACommandGet(VACommand *item, NSString *key) {
     return [item objectForKey:key];
 }
 
-NSString *VACommandEventName(NSDictionary *command) {
+NSString *VACommandEventName(VACommand *command) {
     return [@"com.chpwn.voiceactivator.event." stringByAppendingString:[VACommandGet(command, kVACommandIdentifierKey) stringValue]];
 }
 
@@ -189,5 +209,17 @@ NSString *VASpeechFormatText(NSString *text) {
     return speak;
 }
 
+void VASpeechSpeakText(NSString *text) {
+    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
 
+    UInt32 allowMixing = true;
+    AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(allowMixing), &allowMixing);
+    UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker;
+    AudioSessionSetProperty(kAudioSessionProperty_OverrideAudioRoute, sizeof(audioRouteOverride), &audioRouteOverride);
+
+    [[AVAudioSession sharedInstance] setActive:YES error:nil];
+
+    id synth = [[objc_getClass("VSRecognitionSession") alloc] init];
+    [synth performSelector:@selector(beginSpeakingString:) withObject:text afterDelay:0];
+}
 

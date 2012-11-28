@@ -1,16 +1,14 @@
 
-#import <objc/runtime.h>
-#import <UIKit/UIKit.h>
-#import <CoreFoundation/CoreFoundation.h>
 #import <libactivator.h>
 #import <substrate.h>
 #import <launch.h>
-
-#import <AudioToolbox/AudioToolbox.h>
+#import <spawn.h>
 
 #import "VAShared.h"
 
-@interface VARelayEventDataSource : NSObject <LAEventDataSource>  { } @end
+@interface VARelayEventDataSource : NSObject <LAEventDataSource>
+@end
+
 @implementation VARelayEventDataSource
 - (NSString *)localizedTitleForEventName:(NSString *)eventName { return @"VoiceActivator Event"; }
 - (NSString *)localizedGroupForEventName:(NSString *)eventName { return @"VoiceActivator"; }
@@ -22,41 +20,15 @@
 @protocol VSSpeechSynthesizerDelegate;
 @interface VARelayActionController : NSObject <LAListener, VSSpeechSynthesizerDelegate> { } @end
 @implementation VARelayActionController
-- (void) speechSynthesizer:(NSObject *) synth didFinishSpeaking:(BOOL)didFinish withError:(NSError *) error { NSLog(@"done: %d %@ %@", didFinish, synth, error); }
+- (void)speechSynthesizer:(NSObject *) synth didFinishSpeaking:(BOOL)didFinish withError:(NSError *) error { NSLog(@"done: %d %@ %@", didFinish, synth, error); }
 - (void)activator:(LAActivator *)activator receiveEvent:(LAEvent *)event forListenerName:(NSString *)listenerName {
     NSDictionary *preferences = VAPreferencesLoad();
     NSNumber *identifier = VAResponseIdentifierForActionName(listenerName);
     NSDictionary *response = VAPreferencesGetResponseWithIdentifier(preferences, identifier);
-    NSString *text = VASpeechFormatText((NSString *) VAResponseGet(response, kVAResponseTextKey));
 
-/*UInt32 sessionCategory = kAudioSessionCategory_MediaPlayback;
-AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(sessionCategory), &sessionCategory);    
-UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker;
-AudioSessionSetProperty (kAudioSessionProperty_OverrideAudioRoute,sizeof (audioRouteOverride),&audioRouteOverride);*/
-
-    id vca = [[objc_getClass("SBVoiceControlAlert") alloc] initFromMenuButton];
-    [vca setObject:@"Speaker" forKey:@"SBAudioRouteType"];
-    [vca setObject:[NSNumber numberWithBool:YES] forKey:@"SBTriggeredByMenu"];
-    [vca setObject:[NSNumber numberWithBool:NO] forKey:@"SBHeadsetConnected"];
-    [vca _proximityChanged:nil];
-    id vcd = [[objc_getClass("SBVoiceControlMenuedAlertDisplay") alloc] initWithFrame:CGRectZero session:[vca _session]];
-    [vcd _invalidateRouting];
-    [vcd _configureRoutingIfNecessary];
-    NSLog(@"blah %@ %@", vca, vcd);
-
-    /*id synth = [[objc_getClass("VSSpeechSynthesizer") alloc] initForInputFeedback];
-    [synth setDelegate:self];
-    [synth setVolume:0.01f];
-    //[synth setPitch:0.5f];
-    //[synth setRate:1.0f];
-    [synth startSpeakingString:text];
-    [synth setVolume:0.9f];
-    [vcd _invalidateRouting];
-    [vcd _configureRoutingIfNecessary];*/
-//AudioSessionSetProperty (kAudioSessionProperty_OverrideAudioRoute,sizeof (audioRouteOverride),&audioRouteOverride);
-    id synth = [vca _session];//[[objc_getClass("VSRecognitionSession") alloc] init];
-    //[MSHookIvar<id>(synth, "_synthesizer") setVolume:1.0f];
-    [synth performSelector:@selector(beginSpeakingString:) withObject:text afterDelay:0.2f];
+    NSString *text = VAResponseGet(response, kVAResponseTextKey);
+    text = VASpeechFormatText(text);
+    VASpeechSpeakText(text);
 
     [event setHandled:YES];
 }
@@ -117,7 +89,6 @@ static void VARelayApplyPreferences() {
     [eventNames autorelease];
     eventNames = newEventNames;
 
-
     NSMutableArray *newResponses = [[NSMutableArray alloc] init];
     for (NSDictionary *response in (NSArray *) VAPreferencesGet(preferences, kVAPreferencesResponsesKey)) {
         [newResponses addObject:VAResponseActionName(response)];
@@ -136,13 +107,25 @@ static void VARelayApplyPreferences() {
     [responseNames autorelease];
     responseNames = newResponses;
 
-
     // XXX: This is stupid. I should not need to use the launchd API here.
     launch_data_t msg = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
     launch_data_dict_insert(msg, launch_data_new_string("com.apple.voiced"), LAUNCH_KEY_STOPJOB);
-    launch_data_t resp = launch_msg(msg); // ignore errors, nothing we can do about them
+    launch_data_t resp = launch_msg(msg);
     launch_data_free(msg);
-    launch_data_free(resp);
+
+    if (resp != NULL) {
+        launch_data_free(resp);
+    } else {
+        char *argv[] = { "killall", "voiced", NULL };
+        int status;
+        int err;
+        pid_t child;
+
+        err = posix_spawnp(&child, *argv, NULL, NULL, argv, NULL);
+        if (err == 0) {
+            while (waitpid(child, &status, 0) != child);
+        }
+    }
 
     [[NSFileManager defaultManager] removeItemAtPath:@"/var/mobile/Library/Caches/VoiceServices/" error:NULL];
 }
@@ -168,8 +151,9 @@ __attribute__((constructor)) static void VARelayInit() {
     eventNames = [[NSMutableArray alloc] init];
     dataSource = [[VARelayEventDataSource alloc] init];
 
-    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, VARelayPreferencesChangedCallback, CFSTR("com.chpwn.voiceactivator.preferences_changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+    CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, VARelayPreferencesChangedCallback, CFSTR("com.chpwn.voiceactivator.preferences-changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
     VARelayApplyPreferences();
 
     [pool release];
 }
+

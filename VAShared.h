@@ -21,35 +21,44 @@
 #define kVACommandTypeURL [NSNumber numberWithInt:1]
 #define kVACommandTypeActivator [NSNumber numberWithInt:2]
 
-NSMutableDictionary *VAPreferencesCreate();
-NSMutableDictionary *VAPreferencesLoad();
-void VAPreferencesSave(NSDictionary *preferences);
-NSObject *VAPreferencesGet(NSDictionary *preferences, NSString *key);
-void VAPreferencesSet(NSMutableDictionary *preferences, NSString *key, NSObject *value);
+typedef NSMutableDictionary VAPreferences;
+typedef NSMutableDictionary VAResponse;
+typedef NSMutableDictionary VACommand;
 
-NSMutableDictionary *VAPreferencesGetResponseWithIdentifier(NSDictionary *preferences, NSNumber *identifier);
-void VAPreferencesSetResponseWithIdentifier(NSMutableDictionary *preferences, NSNumber *identifier, NSDictionary *response);
-void VAPreferencesRemoveResponseWithIdentifier(NSMutableDictionary *preferences, NSNumber *identifier);
+extern "C" {
 
-NSMutableDictionary *VAResponseCreateWithDictionary(NSDictionary *item);
-NSMutableDictionary *VAResponseCreateWithParameters(NSString *text);
-NSMutableDictionary *VAResponseCreate();
-NSObject *VAResponseGet(NSDictionary *item, NSString *key);
-void VAResponseSet(NSMutableDictionary *item, NSString *key, NSObject *value);
-NSString *VAResponseActionName(NSDictionary *item);
+VAPreferences *VAPreferencesCreate();
+VAPreferences *VAPreferencesLoad();
+void VAPreferencesSave(VAPreferences *preferences);
+id VAPreferencesGet(VAPreferences *preferences, NSString *key);
+void VAPreferencesSet(VAPreferences *preferences, NSString *key, id value);
+
+VAResponse *VAPreferencesGetResponseWithIdentifier(VAPreferences *preferences, NSNumber *identifier);
+void VAPreferencesSetResponseWithIdentifier(VAPreferences *preferences, NSNumber *identifier, VAResponse *response);
+void VAPreferencesRemoveResponseWithIdentifier(VAPreferences *preferences, NSNumber *identifier);
+
+VAResponse *VAResponseCreateWithDictionary(NSDictionary *item);
+VAResponse *VAResponseCreateWithParameters(NSString *text);
+VAResponse *VAResponseCreate();
+id VAResponseGet(VAResponse *item, NSString *key);
+void VAResponseSet(VAResponse *item, NSString *key, id value);
+NSString *VAResponseActionName(VAResponse *item);
 NSNumber *VAResponseIdentifierForActionName(NSString *name);
 
-NSMutableDictionary *VAPreferencesGetCommandWithIdentifier(NSDictionary *preferences, NSNumber *identifier);
-void VAPreferencesSetCommandWithIdentifier(NSMutableDictionary *preferences, NSNumber *identifier, NSDictionary *command);
-void VAPreferencesRemoveCommandWithIdentifier(NSMutableDictionary *preferences, NSNumber *identifier);
+VACommand *VAPreferencesGetCommandWithIdentifier(VAPreferences *preferences, NSNumber *identifier);
+void VAPreferencesSetCommandWithIdentifier(VAPreferences *preferences, NSNumber *identifier, VACommand *command);
+void VAPreferencesRemoveCommandWithIdentifier(VAPreferences *preferences, NSNumber *identifier);
 
-NSMutableDictionary *VACommandCreateWithDictionary(NSDictionary *item);
-NSMutableDictionary *VACommandCreateWithParameters(NSString *cmd, NSNumber *type, NSString *action, NSNumber *complete);
-NSMutableDictionary *VACommandCreate();
-NSObject *VACommandGet(NSDictionary *item, NSString *key);
-void VACommandSet(NSMutableDictionary *item, NSString *key, NSObject *value);
-NSString *VACommandEventName(NSDictionary *item);
+VACommand *VACommandCreateWithDictionary(NSDictionary *item);
+VACommand *VACommandCreateWithParameters(NSString *cmd, NSNumber *type, NSString *action, NSNumber *complete);
+VACommand *VACommandCreate();
+id VACommandGet(VACommand *item, NSString *key);
+void VACommandSet(VACommand *item, NSString *key, id value);
+NSString *VACommandEventName(VACommand *item);
 NSNumber *VACommandIdentifierForEventName(NSString *name);
 
 NSString *VASpeechFormatText(NSString *speak);
+void VASpeechSpeakText(NSString *text);
+
+}
 
