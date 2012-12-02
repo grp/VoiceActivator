@@ -1,7 +1,7 @@
 Package: com.chpwn.voiceactivator
 Name: VoiceActivator
 Section: Tweaks
-Version: 1.1.99
+Version: 1.2
 Pre-Depends: firmware (>= 4.0)
 Depends: mobilesubstrate, gsc.armv7, libactivator (>= 1.5), preferenceloader
 Icon: file:///Library/PreferenceBundles/VAPreferences.bundle/VoiceActivator@2x.png

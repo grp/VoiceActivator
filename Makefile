@@ -1,7 +1,7 @@
 include theos/makefiles/common.mk
 
 export GO_EASY_ON_ME = 1
-export TARGET = iphone:latest:5.0
+export TARGET = iphone:latest:4.0
 export TARGET_STRIP_FLAGS = -u
 export ARCHS = armv7
 
