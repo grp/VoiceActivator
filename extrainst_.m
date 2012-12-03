@@ -54,7 +54,8 @@ bool HookEnvironment(const char *path) {
 
 int main(int argc, char *argv[]) {
     if (argc < 2 || (
-        strcmp(argv[1], "upgrade") != 0
+        strcmp(argv[1], "upgrade") != 0 &&
+        strcmp(argv[1], "install") != 0
     ))
         return 0;
 
