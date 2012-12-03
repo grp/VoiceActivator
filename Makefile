@@ -7,6 +7,10 @@ export ARCHS = armv7
 
 BUNDLE_NAME = VAPreferences
 TWEAK_NAME = VARelay VAPlugin VAInjector
+TOOL_NAME = extrainst_
+
+extrainst__FILES = extrainst_.m
+extrainst__INSTALL_PATH = /DEBIAN/
 
 VAInjector_FILES = VAInjector.mm VAShared.mm
 VAInjector_FRAMEWORKS = CoreFoundation UIKit CoreTelephony AudioToolbox AVFoundation
@@ -27,5 +31,6 @@ VARelay_PRIVATE_FRAMEWORKS = VoiceServices
 VARelay_LDFLAGS = -lactivator
 
 include $(THEOS_MAKE_PATH)/bundle.mk
+include $(THEOS_MAKE_PATH)/tool.mk
 include $(THEOS_MAKE_PATH)/tweak.mk
 

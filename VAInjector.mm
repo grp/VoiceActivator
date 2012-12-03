@@ -92,10 +92,14 @@ CFReadStreamRef VACFReadStreamCreateWithFile(
     );
 
     if (CFStringHasPrefix(CFURLGetString(fileURL), CFSTR("file://localhost/System/Library/VoiceServices/PlugIns/Base.vsplugin/com.apple.help"))) {
+        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
         if ([VAPreferencesGet(VAPreferencesLoad(), kVAPreferencesEnabledKey) boolValue]) {
             // This *entirely* defines enabled/disabled state.
             inject_stream = stream;
         }
+
+        [pool release];
     }
 
     return stream;
